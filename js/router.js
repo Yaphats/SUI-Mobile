@@ -273,7 +273,7 @@
      * @param {String} url url
      * @param {Boolean=} ignoreCache 是否强制请求不使用缓存，对 document 生效，默认是 false
      */
-    Router.prototype.load = function(url, ignoreCache) {
+    Router.prototype.load = function(url, ignoreCache, direction) {
         if (ignoreCache === undefined) {
             ignoreCache = false;
         }
@@ -282,7 +282,7 @@
             this._switchToSection(Util.getUrlFragment(url));
         } else {
             this._saveDocumentIntoCache($(document), location.href);
-            this._switchToDocument(url, ignoreCache);
+            this._switchToDocument(url, ignoreCache, true, direction);
         }
     };
 
@@ -393,9 +393,6 @@
      * @private
      */
     Router.prototype._doSwitchDocument = function(url, isPushState, direction) {
-        if (typeof isPushState === 'undefined') {
-            isPushState = true;
-        }
 
         var urlObj = Util.toUrlObject(url);
         var $currentDoc = this.$view.find('.' + routerConfig.sectionGroupClass);
@@ -659,11 +656,6 @@
      * @private
      */
     Router.prototype._animateElement = function($from, $to, direction) {
-        // todo: 可考虑如果入参不指定，那么尝试读取 $to 的属性，再没有再使用默认的
-        // 考虑读取点击的链接上指定的方向
-        if (typeof direction === 'undefined') {
-            direction = DIRECTION.rightToLeft;
-        }
 
         var animPageClasses = [
             'page-from-center-to-left',
@@ -940,8 +932,9 @@
                 }
 
                 var ignoreCache = $target.attr('data-no-cache') === 'true';
-
-                router.load(url, ignoreCache);
+                //通过data-direction控制页面切换动画方向
+                var direction = $target.data('direction') || 'from-right-to-left';
+                router.load(url, ignoreCache, direction);
             }
         });
     });
